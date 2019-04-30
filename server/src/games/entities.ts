@@ -2,13 +2,24 @@ import { BaseEntity, PrimaryGeneratedColumn, Column, Entity, Index, OneToMany, M
 import User from '../users/entity'
 
 export type Symbol = 'x' | 'o'
-export type Row = [Symbol | null, Symbol | null, Symbol | null]
-export type Board = [Row, Row, Row]
+export type Board = Hand[]
+
+export type Hand = {
+  id: number
+  flipped: boolean
+  matched: boolean
+}
 
 type Status = 'pending' | 'started' | 'finished'
 
-const emptyRow: Row = [null, null, null]
-const emptyBoard: Board = [emptyRow, emptyRow, emptyRow]
+const hands = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22].map(index => {
+  return {
+    id: index,
+    flipped: false,
+    matched: false
+  }
+});
+export const emptyBoard: Board = hands.concat(hands)
 
 @Entity()
 export class Game extends BaseEntity {
@@ -47,9 +58,13 @@ export class Player extends BaseEntity {
   @ManyToOne(_ => Game, game => game.players)
   game: Game
 
+  @Column()
+  userId: number
+
   @Column('char', { length: 1 })
   symbol: Symbol
 
-  @Column('integer', { name: 'user_id' })
-  userId: number
+  @Column('integer', { default: 0 })
+  score: number
 }
+

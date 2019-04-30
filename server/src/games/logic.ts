@@ -1,53 +1,57 @@
 import { ValidatorConstraint, ValidatorConstraintInterface } from 'class-validator'
-import { Board, Symbol, Row } from './entities'
+import { Board, Symbol } from './entities'
 
 @ValidatorConstraint()
 export class IsBoard implements ValidatorConstraintInterface {
 
   validate(board: Board) {
-    const symbols = [ 'x', 'o', null ]
-    return board.length === 3 &&
-      board.every(row =>
-        row.length === 3 &&
-        row.every(symbol => symbols.includes(symbol))
-      )
+    return board.every(row => typeof row.flipped !== 'undefined' && typeof row.matched !== 'undefined')
   }
 }
 
-export const isValidTransition = (playerSymbol: Symbol, from: Board, to: Board) => {
-  const changes = from
-    .map(
-      (row, rowIndex) => row.map((symbol, columnIndex) => ({
-        from: symbol, 
-        to: to[rowIndex][columnIndex]
-      }))
-    )
-    .reduce((a,b) => a.concat(b))
-    .filter(change => change.from !== change.to)
+export const isValidTransition = (from: Board, to: Board) => {
+  const oldHands = from.filter(row => row.flipped)
+  const newHands = to.filter(row => row.flipped)
+  const flippedHands = newHands.length - oldHands.length;
 
-  return changes.length === 1 && 
-    changes[0].to === playerSymbol && 
-    changes[0].from === null
+  if (flippedHands !== 1) return false
+  else return true
 }
 
-export const calculateWinner = (board: Board): Symbol | null =>
-  board
-    .concat(
-      // vertical winner
-      [0, 1, 2].map(n => board.map(row => row[n])) as Row[]
-    )
-    .concat(
-      [
-        // diagonal winner ltr
-        [0, 1, 2].map(n => board[n][n]),
-        // diagonal winner rtl
-        [0, 1, 2].map(n => board[2-n][n])
-      ] as Row[]
-    )
-    .filter(row => row[0] && row.every(symbol => symbol === row[0]))
-    .map(row => row[0])[0] || null
+export const calculateWinner = (board: Board): Symbol | null => {
+  return null
+}
 
 export const finished = (board: Board): boolean =>
-  board
-    .reduce((a,b) => a.concat(b) as Row)
-    .every(symbol => symbol !== null)
+  board.every(row => row.matched)
+
+export const updateBoard = (board: Board): Board => {
+  const flippedHands = board.filter(row => row.flipped)
+
+  if (flippedHands.length < 2) { // Return old board
+    return board
+  }
+  else if (flippedHands[0].id === flippedHands[1].id) { // match found
+    board.map(row => {
+      if (row.id === flippedHands[0].id) {
+        row.flipped = false;
+        row.matched = true;
+      }
+
+      return row;
+    })
+  }
+
+  return board;
+}
+
+export const matchFound = (oldBoard: Board, newBoard: Board): boolean => {
+  return newBoard.filter(row => row.matched).length > oldBoard.filter(row => row.matched).length
+}
+
+export const missMatch = (board: Board): boolean =>
+  board.filter(row => row.flipped).length >= 2
+
+export const resetBoard = (board: Board): Board =>
+  board.map(row => { row.flipped = false; return row })
+

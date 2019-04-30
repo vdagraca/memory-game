@@ -135,20 +135,31 @@ describe('isValidTransition()', () => {
 
 describe('finished()', () => {
 
-  it('should finish when there are no moves left', () => {
+  it('should finish when all hands are flipped and matched', () => {
     const board: Board = [
-      ['o', 'o', 'x'],
-      ['x', 'x', 'o'],
-      ['x', 'o', 'o'],
+      { id: 1, flipped: true, matched: true },
+      { id: 2, flipped: true, matched: true },
+      { id: 3, flipped: true, matched: true },
+      { id: 4, flipped: true, matched: true },
+      { id: 1, flipped: true, matched: true },
+      { id: 2, flipped: true, matched: true },
+      { id: 3, flipped: true, matched: true },
+      { id: 4, flipped: true, matched: true }
     ]
+
     equal(finished(board), true)
   })
 
-  it('should not finish when there are moves left', () => {
+  it('should not finish when there are hands left that aren\'t matched', () => {
     const board: Board = [
-      ['o', null, 'x'],
-      [null, null, 'o'],
-      ['x', 'o', 'o'],
+      { id: 1, flipped: true, matched: true },
+      { id: 2, flipped: false, matched: false },
+      { id: 3, flipped: true, matched: true },
+      { id: 4, flipped: false, matched: false },
+      { id: 1, flipped: true, matched: true },
+      { id: 2, flipped: true, matched: false },
+      { id: 3, flipped: true, matched: true },
+      { id: 4, flipped: true, matched: false }
     ]
     equal(finished(board), false)
   })

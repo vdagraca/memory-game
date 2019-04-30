@@ -5,6 +5,7 @@ import {
 import User from '../users/entity'
 import { Game, Player, Board } from './entities'
 import { IsBoard, isValidTransition, calculateWinner, finished } from './logic'
+import { updateBoard, matchFound, missMatch, resetBoard } from './logic'
 import { Validate } from 'class-validator'
 import { io } from '../index'
 
@@ -16,6 +17,13 @@ class GameUpdate {
   board: Board
 }
 
+const shuffleArray = arr => (
+  arr
+    .map(a => [Math.random(), a])
+    .sort((a, b) => a[0] - b[0])
+    .map(a => a[1])
+)
+
 @JsonController()
 export default class GameController {
 
@@ -25,7 +33,9 @@ export default class GameController {
   async createGame(
     @CurrentUser() user: User
   ) {
-    const entity = await Game.create().save()
+    const entity = await Game.create({
+      board: shuffleArray(emptyBoard)
+    }).save()
 
     await Player.create({
       game: entity,
@@ -93,6 +103,8 @@ export default class GameController {
       throw new BadRequestError(`Invalid move`)
     }
 
+    update.board = updateBoard(update.board);
+
     const winner = calculateWinner(update.board)
     if (winner) {
       game.winner = winner
@@ -101,16 +113,31 @@ export default class GameController {
     else if (finished(update.board)) {
       game.status = 'finished'
     }
-    else {
-      game.turn = player.symbol === 'x' ? 'o' : 'x'
+    else if (matchFound(game.board, update.board)) {
+      player.score += 1;
     }
+    else if (missMatch(update.board)) {
+      game.board = update.board
+
+      io.emit('action', {
+        type: 'UPDATE_GAME',
+        payload: game
+      })
+
+      game.turn = player.symbol === 'x' ? 'o' : 'x'
+      update.board = resetBoard(update.board);
+    }
+
     game.board = update.board
     await game.save()
+    await player.save()
 
-    io.emit('action', {
+    const delay = player.symbol != game.turn ? 800 : 0
+
+    setTimeout(() => io.emit('action', {
       type: 'UPDATE_GAME',
       payload: game
-    })
+    }), delay)
 
     return game
   }
