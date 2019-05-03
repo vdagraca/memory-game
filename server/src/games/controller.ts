@@ -65,7 +65,7 @@ export default class GameController {
     const player = await Player.create({
       game,
       user,
-      symbol: 'o',
+      symbol: 'x',
     }).save()
 
     io.emit('action', {
