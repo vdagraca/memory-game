@@ -21,10 +21,7 @@ export class Card extends PureComponent {
         console.log('e target!!!: ', e.target)
         e.preventDefault();
         // already flipped, can not flip again the same card
-        if (this.state.isFlipped) {
-            console.log('already flipped');
-            return;
-        }
+        
 
         console.log(this.props.picture);
         // can not flip more than 2 cards

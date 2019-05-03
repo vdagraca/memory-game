@@ -114,7 +114,7 @@ export default class GameController {
     if (game.status !== 'started') throw new BadRequestError(`The game is not started yet`)
     if (player.symbol !== game.turn) throw new BadRequestError(`It's not your turn`)
 
-    game.flipped[targetRow][targetColumn] = true
+    game.flipped[targetRow][targetColumn] = !game.flipped[targetRow][targetColumn]
 
     // const winner = calculateWinner(update.board)
     // if (winner) {
