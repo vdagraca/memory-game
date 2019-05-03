@@ -4,7 +4,7 @@ import {
 } from 'routing-controllers'
 import User from '../users/entity'
 import { Game, Player, Board, flipBoard } from './entities'
-import { IsBoard, isValidTransition, calculateWinner, finished, fullArray } from './logic'
+import { IsBoard, isValidTransition, calculateWinner, finished, randomize } from './logic'
 import { Validate } from 'class-validator'
 import { io } from '../index'
 import images from './imagesDatabase'
@@ -19,6 +19,7 @@ export default class GameController {
     @CurrentUser() user: User
   ) {
 
+    const fullArray = randomize()
     
     const array1 = fullArray.slice(0, 8)
     const array2 = fullArray.slice(8, 16)
